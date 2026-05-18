@@ -1,9 +1,21 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cyan-accent: #06b6d4;
+  --color-forest: #015249;
+  --color-forest-muted: #4a6b65;
+  --color-lime-soft: #84cc16;
+  --color-coral-soft: #fb7185;
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }

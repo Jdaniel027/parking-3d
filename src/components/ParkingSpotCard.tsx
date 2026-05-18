@@ -14,15 +14,16 @@ export default function ParkingSpotCard({ spot, onClick }: Props) {
       className={`
         flex flex-col items-center justify-center gap-1
         w-full aspect-[3/2] rounded-xl text-xs font-bold
-        transition-all duration-300 ease-in-out hover:scale-[1.03]
+        transition-all duration-300 ease-in-out hover:shadow-md hover:-translate-y-0.5
+        border-2
         ${spot.occupied
-          ? 'bg-red-500/20 border border-red-500/50 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.25)]'
-          : 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.2)]'
+          ? 'bg-coral-soft/20 border-coral-soft'
+          : 'bg-lime-soft/15 border-lime-soft'
         }
       `}
     >
-      <span className="text-base">Cajón {idStr}</span>
-      <span className={`text-[9px] font-medium ${spot.occupied ? 'text-red-400/70' : 'text-emerald-400/70'}`}>
+      <span className="text-base text-forest">Cajón {idStr}</span>
+      <span className="text-[9px] font-medium text-forest">
         {spot.occupied ? 'Ocupado' : 'Disponible'}
       </span>
     </button>

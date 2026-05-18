@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import type { LightingZone, LightingMode } from '../types/dashboard'
 
 const INITIAL: LightingZone[] = [
-  { id: 1, name: 'Zona de Cajones', mode: 'eco', brightness: 50, ldrValue: 50 },
-  { id: 2, name: 'Zona de Acceso (Plumas)', mode: 'eco', brightness: 50, ldrValue: 50 },
-  { id: 3, name: 'Zona Perimetral', mode: 'eco', brightness: 50, ldrValue: 50 },
+  { id: 1, name: 'Zona Este', mode: 'eco', brightness: 50, ldrValue: 50 },
+  { id: 2, name: 'Zona Oeste', mode: 'eco', brightness: 50, ldrValue: 50 },
 ]
 
 export function useLightingZones() {

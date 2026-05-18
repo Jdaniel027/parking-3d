@@ -3,6 +3,7 @@ export type LightColor = 'green' | 'yellow' | 'red'
 
 export interface TrafficLight {
   id: number
+  name: string
   mode: TrafficLightMode
   activeColor: LightColor
 }

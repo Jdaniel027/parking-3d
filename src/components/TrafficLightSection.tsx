@@ -9,9 +9,9 @@ type Props = {
 
 export default function TrafficLightSection({ lights, onSetMode, onSetColor }: Props) {
   return (
-    <section className="bg-white/[0.02] backdrop-blur-md border border-white/[0.06] rounded-2xl p-4">
-      <h2 className="text-sm font-semibold text-white/90 mb-3 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-cyan-400" />
+    <section className="bg-white border border-gray-200 rounded-xl p-4">
+      <h2 className="text-sm font-semibold text-forest mb-3 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-cyan-accent" />
         Control de Semáforos
       </h2>
       <div className="grid grid-cols-5 gap-3">

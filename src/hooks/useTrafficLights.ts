@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { TrafficLight, TrafficLightMode, LightColor } from '../types/dashboard'
 
-const COUNT = 5
+const NAMES = ['Norte', 'Sur', 'Este', 'Oeste']
 const CYCLE: LightColor[] = ['green', 'yellow', 'red']
 const DURATIONS: Record<LightColor, number> = { green: 4000, yellow: 2000, red: 4000 }
 
@@ -11,8 +11,9 @@ const getNextColor = (c: LightColor): LightColor => {
 }
 
 function createInitial(): TrafficLight[] {
-  return Array.from({ length: COUNT }, (_, i) => ({
+  return NAMES.map((name, i) => ({
     id: i + 1,
+    name,
     mode: 'automatic' as TrafficLightMode,
     activeColor: 'green' as LightColor,
   }))
