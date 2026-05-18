@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ParkingSpot, ParkingData } from "../types/parking";
 
+// Aqui se cambia los cajones del estacionamiento
 const TOTAL_SPOTS = 5;
 
 function createInitialSpots(): ParkingSpot[] {
@@ -31,6 +32,7 @@ export function useParkingData(): ParkingData & {
           i === randomIndex ? { ...spot, occupied: !spot.occupied } : spot,
         ),
       );
+      // Simula cambios aleatorios cada 3 segundos
     }, 3000);
     return () => clearInterval(interval);
   }, []);
