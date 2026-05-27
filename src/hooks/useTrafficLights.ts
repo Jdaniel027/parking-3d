@@ -3,22 +3,49 @@ import type { TrafficLight, TrafficLightMode, LightColor, TrafficCycle } from '.
 import { DEFAULT_CYCLE } from '../types/dashboard'
 
 const NAMES = ['Norte', 'Sur', 'Este', 'Oeste']
-const CYCLE: LightColor[] = ['green', 'yellow', 'red']
 
-const getNextColor = (c: LightColor): LightColor => {
-  const idx = CYCLE.indexOf(c)
-  return CYCLE[(idx + 1) % CYCLE.length]
+type Phase = 'ns-green' | 'ns-yellow' | 'eo-green' | 'eo-yellow'
+
+function phaseDuration(phase: Phase, c: TrafficCycle): number {
+  switch (phase) {
+    case 'ns-green': return c.verde * 1000
+    case 'ns-yellow': return c.amarillo * 1000
+    case 'eo-green': return c.rojo * 1000
+    case 'eo-yellow': return c.amarillo * 1000
+  }
 }
 
-function getDuration(light: TrafficLight): number {
-  switch (light.activeColor) {
-    case 'green':
-      return light.cycle.verde * 1000
-    case 'yellow':
-      return light.cycle.amarillo * 1000
-    case 'red':
-      return light.cycle.rojo * 1000
-  }
+function nextPhase(p: Phase): Phase {
+  const order: Phase[] = ['ns-green', 'ns-yellow', 'eo-green', 'eo-yellow']
+  return order[(order.indexOf(p) + 1) % order.length]
+}
+
+function applyPhase(lights: TrafficLight[], phase: Phase): TrafficLight[] {
+  const nsGreen = phase === 'ns-green'
+  const nsYellow = phase === 'ns-yellow'
+  const eoGreen = phase === 'eo-green'
+  const eoYellow = phase === 'eo-yellow'
+  return lights.map((t) => {
+    if (t.mode !== 'automatic') return t
+    const inNS = t.id <= 2
+    if (inNS && nsGreen) return { ...t, activeColor: 'green' }
+    if (inNS && nsYellow) return { ...t, activeColor: 'yellow' }
+    if (inNS && (eoGreen || eoYellow)) return { ...t, activeColor: 'red' }
+    if (!inNS && eoGreen) return { ...t, activeColor: 'green' }
+    if (!inNS && eoYellow) return { ...t, activeColor: 'yellow' }
+    if (!inNS && (nsGreen || nsYellow)) return { ...t, activeColor: 'red' }
+    return t
+  })
+}
+
+function detectPhase(lights: TrafficLight[]): Phase {
+  const ns = lights[0]
+  const eo = lights[2]
+  if (!ns || !eo) return 'ns-green'
+  if (ns.activeColor === 'green') return 'ns-green'
+  if (ns.activeColor === 'yellow') return 'ns-yellow'
+  if (eo.activeColor === 'green') return 'eo-green'
+  return 'eo-yellow'
 }
 
 function createInitial(): TrafficLight[] {
@@ -26,7 +53,7 @@ function createInitial(): TrafficLight[] {
     id: i + 1,
     name,
     mode: 'automatic' as TrafficLightMode,
-    activeColor: 'green' as LightColor,
+    activeColor: i <= 1 ? 'green' as LightColor : 'red' as LightColor,
     cycle: { ...DEFAULT_CYCLE },
   }))
 }
@@ -35,31 +62,47 @@ export function useTrafficLights() {
   const [lights, setLights] = useState<TrafficLight[]>(createInitial)
 
   useEffect(() => {
-    const timeouts: ReturnType<typeof setTimeout>[] = []
-    for (const l of lights) {
-      if (l.mode !== 'automatic') continue
-      const timeout = setTimeout(() => {
-        setLights((prev) =>
-          prev.map((t) =>
-            t.id !== l.id || t.mode !== 'automatic'
-              ? t
-              : { ...t, activeColor: getNextColor(t.activeColor) },
-          ),
-        )
-      }, getDuration(l))
-      timeouts.push(timeout)
-    }
-    return () => timeouts.forEach(clearTimeout)
+    const auto = lights.filter((l) => l.mode === 'automatic')
+    if (auto.length === 0) return
+
+    const phase = detectPhase(lights)
+    const dur = phaseDuration(phase, lights[0].cycle)
+
+    const id = setTimeout(() => {
+      setLights((prev) => {
+        const autoLights = prev.filter((l) => l.mode === 'automatic')
+        if (autoLights.length === 0) return prev
+        const next = nextPhase(detectPhase(prev))
+        return applyPhase(prev, next)
+      })
+    }, dur)
+
+    return () => clearTimeout(id)
   }, [lights])
 
   const setMode = useCallback((id: number, mode: TrafficLightMode) => {
-    setLights((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t
-        if (mode === 'emergency') return { ...t, mode, activeColor: 'red' as LightColor }
-        return { ...t, mode }
-      }),
-    )
+    setLights((prev) => {
+      if (mode === 'emergency') {
+        return prev.map((t) => ({ ...t, mode: 'emergency', activeColor: 'red' as LightColor }))
+      }
+      if (mode === 'automatic') {
+        const phase = detectPhase(prev)
+        const inNS = id <= 2
+        const nsGreen = phase === 'ns-green'
+        const nsYellow = phase === 'ns-yellow'
+        const eoGreen = phase === 'eo-green'
+        const eoYellow = phase === 'eo-yellow'
+        let color: LightColor
+        if (inNS && nsGreen) color = 'green'
+        else if (inNS && nsYellow) color = 'yellow'
+        else if (inNS && (eoGreen || eoYellow)) color = 'red'
+        else if (!inNS && eoGreen) color = 'green'
+        else if (!inNS && eoYellow) color = 'yellow'
+        else color = 'red'
+        return prev.map((t) => (t.id === id ? { ...t, mode, activeColor: color } : t))
+      }
+      return prev.map((t) => (t.id === id ? { ...t, mode, activeColor: 'red' } : t))
+    })
   }, [])
 
   const setActiveColor = useCallback((id: number, color: LightColor) => {
@@ -69,9 +112,7 @@ export function useTrafficLights() {
   }, [])
 
   const setCycle = useCallback((id: number, cycle: TrafficCycle) => {
-    setLights((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, cycle } : t)),
-    )
+    setLights((prev) => prev.map((t) => ({ ...t, cycle })))
   }, [])
 
   const syncAllCycles = useCallback((sourceId: number) => {
@@ -84,15 +125,17 @@ export function useTrafficLights() {
 
   const setAllEmergency = useCallback(() => {
     setLights((prev) =>
-      prev.map((t) => ({ ...t, mode: 'emergency' as TrafficLightMode, activeColor: 'red' as LightColor })),
+      prev.map((t) => ({ ...t, mode: 'emergency', activeColor: 'red' as LightColor })),
     )
   }, [])
 
   const resetAllEmergency = useCallback(() => {
     setLights((prev) =>
-      prev.map((t) =>
-        t.mode === 'emergency' ? { ...t, mode: 'automatic' as TrafficLightMode } : t,
-      ),
+      prev.map((t) => {
+        if (t.mode !== 'emergency') return t
+        const inNS = t.id <= 2
+        return { ...t, mode: 'automatic', activeColor: inNS ? 'green' as LightColor : 'red' as LightColor }
+      }),
     )
   }, [])
 
