@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <body>
+    <h3>Simulador ESP32</h3>
+
+    <button onclick="simular([0, 0, 0, 0, 0])">Todos libres</button>
+    <button onclick="simular([1, 1, 1, 1, 1])">Todos ocupados</button>
+    <button onclick="simular([0, 1, 0, 1, 0])">Alternado</button>
+    <button onclick="simular([1, 0, 0, 0, 1])">Solo extremos</button>
+
+    <pre id="output"></pre>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+      const socket = io('http://localhost:3000');
+
+      socket.on('parking_update', (datos) => {
+        document.getElementById('output').textContent = JSON.stringify(
+          datos,
+          null,
+          2,
+        );
+      });
+
+      function simular(estados) {
+        socket.emit('test', { estados });
+      }
+    </script>
+  </body>
+</html>
