@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { LightingZone, LightingMode } from "../types/dashboard";
+import { useLuces } from "../hooks/useLuces";
 
 type Props = {
   zone: LightingZone | null;
@@ -18,10 +19,18 @@ const MC: Record<string, string> = {
 
 export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnAllOn, onTurnAllOff }: Props) {
   const [draftIntensity, setDraftIntensity] = useState(zone?.intensity ?? 0);
+  const { zona, setZona, mode, setMode, payload, setPayload, confirmar } = useLuces();
+  const lastLoadedZoneId = useRef<number | null>(null);
 
   useEffect(() => {
-    setDraftIntensity(zone?.intensity ?? 0);
-  }, [zone?.id, zone?.intensity]);
+    if (zone && lastLoadedZoneId.current !== zone.id) {
+      setZona(zone.id === 1 ? 'este' : 'oeste');
+      setMode(zone.mode === 'apagado' ? 'apagar' : zone.mode === 'eco' ? 'eco' : 'manual');
+      setPayload({ intensidad: zone.intensity });
+      setDraftIntensity(zone.intensity);
+      lastLoadedZoneId.current = zone.id;
+    }
+  }, [zone, setZona, setMode, setPayload]);
 
   if (!zone) {
     return (
@@ -34,6 +43,38 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
     );
   }
 
+  const handleSetMode = (m: LightingMode) => {
+    onSetMode(zone.id, m);
+    setZona(zone.id === 1 ? 'este' : 'oeste');
+    setMode(m === 'apagado' ? 'apagar' : m === 'eco' ? 'eco' : 'manual');
+  };
+
+  const handleSetIntensity = (val: number) => {
+    onSetIntensity(zone.id, val);
+    setZona(zone.id === 1 ? 'este' : 'oeste');
+    setPayload({ intensidad: val });
+  };
+
+  const handleTurnAllOn = () => {
+    onTurnAllOn(zone.id);
+    setZona('ambas');
+    setMode('manual');
+    const newPayload = { intensidad: 100 };
+    setPayload(newPayload);
+    setDraftIntensity(100);
+    confirmar({ zona: 'ambas', mode: 'manual', payload: newPayload });
+  };
+
+  const handleTurnAllOff = () => {
+    onTurnAllOff(zone.id);
+    setZona('ambas');
+    setMode('apagar');
+    const newPayload = { intensidad: 0 };
+    setPayload(newPayload);
+    setDraftIntensity(0);
+    confirmar({ zona: 'ambas', mode: 'apagar', payload: newPayload });
+  };
+
   const lampsOn = zone.lamps.filter((l) => l.isOn).length;
   const isDirty = draftIntensity !== zone.intensity;
 
@@ -42,8 +83,12 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-forest">{zone.name}</h3>
-            <span className="text-xs text-gray-400">ID #{zone.id}</span>
+            <h3 className="text-xl font-bold text-forest">
+              {zona === 'ambas' ? 'Ambas Zonas (Sincronizado)' : zone.name}
+            </h3>
+            <span className="text-xs text-gray-400">
+              {zona === 'ambas' ? 'ID #0' : `ID #${zone.id}`}
+            </span>
           </div>
           <span className="text-xs text-gray-400">{lampsOn}/{zone.lamps.length}</span>
         </div>
@@ -58,11 +103,11 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
       <div className="flex flex-col gap-2">
         <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Acciones Rápidas</span>
         <div className="flex gap-2">
-          <button onClick={() => onTurnAllOn(zone.id)}
+          <button onClick={handleTurnAllOn}
             className="flex-1 py-2 rounded-lg text-sm font-medium border border-lime-soft/40 bg-lime-soft/15 text-forest hover:bg-lime-soft/25 transition-all duration-200">
             Encender todas
           </button>
-          <button onClick={() => onTurnAllOff(zone.id)}
+          <button onClick={handleTurnAllOff}
             className="flex-1 py-2 rounded-lg text-sm font-medium border border-coral-soft/40 bg-coral-soft/10 text-forest hover:bg-coral-soft/20 transition-all duration-200">
             Apagar todas
           </button>
@@ -73,7 +118,7 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
         <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Modo de Control</span>
         <div className="flex rounded-lg overflow-hidden text-sm font-medium border border-gray-200">
           {(["eco", "manual", "apagado"] as const).map((m) => (
-            <button key={m} onClick={() => onSetMode(zone.id, m)}
+            <button key={m} onClick={() => handleSetMode(m)}
               className={`flex-1 py-2 border-r last:border-r-0 transition-all duration-200 ${zone.mode === m ? MC[m] : "text-gray-400 hover:text-forest"}`}>
               {ML[m]}
             </button>
@@ -93,7 +138,7 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
               [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(132,196,22,0.5)]" />
         </div>
         {isDirty && (
-          <button onClick={() => onSetIntensity(zone.id, draftIntensity)}
+          <button onClick={() => handleSetIntensity(draftIntensity)}
             className="w-full py-2 rounded-lg text-sm font-medium bg-lime-soft text-white hover:bg-lime-soft/90 transition-all duration-200 flex items-center justify-center gap-2">
             <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 10l4 4 8-8" />
@@ -118,6 +163,16 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
           <div className="flex justify-between"><span className="text-gray-400">Firmware</span><span className="font-semibold text-forest">{zone.firmware}</span></div>
         </div>
       </div>
+      <hr className="border-gray-100" />
+      <button
+        onClick={() => confirmar()}
+        className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 transition-colors shadow-lg shadow-forest/20 flex items-center justify-center gap-2"
+      >
+        <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+        Confirmar Configuración
+      </button>
     </div>
   );
 }

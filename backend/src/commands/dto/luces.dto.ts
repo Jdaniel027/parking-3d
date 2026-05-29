@@ -24,7 +24,7 @@ class ApagarPayload {
 
 export class LucesDto {
   @IsString()
-  zona!: 'oeste' | 'este'; // o el enum de zonas que manejes
+  zona!: 'oeste' | 'este' | 'ambas'; // o el enum de zonas que manejes
 
   @IsString()
   @IsIn(['manual', 'eco', 'apagar'])

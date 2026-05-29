@@ -1,4 +1,6 @@
+import { useSemaforo, SemaforoMode, SemaforoColor } from '../hooks/useSemaforo'
 import type { TrafficLight, LightColor, TrafficCycle } from '../types/dashboard'
+import { useEffect, useRef } from 'react'
 
 type Props = {
   light: TrafficLight | null
@@ -38,6 +40,68 @@ function ModeIcon({ mode }: { mode: string }) {
 }
 
 export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle, onSyncAll, onEmergencyAll, onResetEmergency }: Props) {
+  const { mode, setMode, semaforo, setSemaforo, payload, setPayload, aplicar } = useSemaforo();
+
+  // Usamos un ref para rastrear qué semáforo está cargado y evitar sobreescrituras accidentales del "0"
+  const lastLoadedId = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Solo cargamos los datos del semáforo si el usuario seleccionó uno DIFERENTE
+    // o si es la primera vez que se carga uno.
+    if (light && lastLoadedId.current !== light.id) {
+      setSemaforo(light.id);
+      setMode(light.mode === 'automatic' ? 'automatico' : light.mode === 'manual' ? 'manual' : 'emergencia');
+      setPayload({
+        verde: light.cycle.verde,
+        amarillo: light.cycle.amarillo,
+        rojo: light.cycle.rojo,
+        color: light.activeColor === 'green' ? 'verde' : light.activeColor === 'yellow' ? 'amarillo' : 'rojo'
+      });
+      lastLoadedId.current = light.id;
+    }
+  }, [light, setSemaforo, setMode, setPayload]);
+
+  const handleSetMode = (m: TrafficLight['mode']) => {
+    if (!light) return;
+    onSetMode(light.id, m);
+    setSemaforo(light.id); // Aseguramos que si cambia modo, vuelve a su ID individual
+    setMode(m === 'automatic' ? 'automatico' : m === 'manual' ? 'manual' : 'emergencia');
+  };
+
+  const handleSetColor = (c: LightColor) => {
+    if (!light) return;
+    onSetColor(light.id, c);
+    setSemaforo(light.id);
+    setPayload(prev => ({ ...prev, color: c === 'green' ? 'verde' : c === 'yellow' ? 'amarillo' : 'rojo' }));
+  };
+
+  const handleSetCycle = (key: 'verde' | 'amarillo' | 'rojo', val: number) => {
+    if (!light) return;
+    const newCycle = { ...light.cycle, [key]: val };
+    onSetCycle(light.id, newCycle);
+    setSemaforo(light.id);
+    setPayload(prev => ({ ...prev, [key]: val }));
+  };
+
+  const handleSync = () => {
+    if (!light) return;
+    onSyncAll(light.id);
+    setSemaforo(0); // Forzamos el 0 para mandar a todos
+    // El modo y payload se quedan como están (los del semáforo actual)
+  };
+
+  const handleEmergencyAll = () => {
+    onEmergencyAll();
+    setSemaforo(0);
+    setMode('emergencia'); // Modo correcto para el backend
+  };
+
+  const handleResetEmergency = () => {
+    onResetEmergency();
+    setSemaforo(0);
+    setMode('automatico');
+  };
+
   if (!light) {
     return (
       <div className="rounded-xl p-6 flex flex-col items-center justify-center text-center gap-4 h-full border border-gray-200 bg-white shadow-xs">
@@ -60,7 +124,9 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-700">Semáforo Seleccionado</span>
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">{light.name}</span>
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              {semaforo === 0 ? 'TODOS (Sincronizado)' : light.name}
+            </span>
           </div>
           <div className="flex items-center gap-2 mt-2">
             <span className={`w-2 h-2 rounded-full ${light.mode === 'automatic' ? 'bg-lime-soft' : light.mode === 'manual' ? 'bg-cyan-accent' : 'bg-coral-soft'}`} />
@@ -121,7 +187,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
                   : 'bg-red-50 border-red-300 text-red-700'
               : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'
             return (
-              <button key={m} onClick={() => onSetMode(light.id, m)} className={`${base} ${style}`}>
+              <button key={m} onClick={() => handleSetMode(m)} className={`${base} ${style}`}>
                 <ModeIcon mode={m} />
                 {MODE_LABEL[m]}
               </button>
@@ -140,7 +206,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
             const labels: Record<string, string> = { green: 'Verde', yellow: 'Amarillo', red: 'Rojo' }
             const active = isManual && light.activeColor === c
             return (
-              <button key={c} disabled={!isManual} onClick={() => onSetColor(light.id, c)}
+              <button key={c} disabled={!isManual} onClick={() => handleSetColor(c)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all duration-200
                   ${isManual ? (active ? 'ring-1 ring-inset ring-current' : '') : 'opacity-40 cursor-not-allowed'}
                   ${c === 'green' ? (isManual ? 'bg-lime-50 border-lime-300 text-lime-700' : 'bg-white border-gray-200 text-gray-300') : ''}
@@ -173,7 +239,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
                 <input type="number" min={1} value={light.cycle[key]}
                   onChange={(e) => {
                     const v = parseInt(e.target.value, 10); if (isNaN(v)) return
-                    onSetCycle(light.id, { ...light.cycle, [key]: clamp(v) })
+                    handleSetCycle(key, clamp(v))
                   }}
                   className={`w-full px-1.5 py-1.5 rounded-lg border text-xs font-bold text-center outline-none transition-all ${ring} ${text} focus:ring-2`} />
               </label>
@@ -191,7 +257,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
       <div>
         <span className="text-[11px] text-gray-500 font-medium mb-2 block">Acciones Rápidas</span>
         <div className="flex gap-2">
-          <button onClick={() => onSyncAll(light.id)}
+          <button onClick={handleSync}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all duration-200">
             <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2.5a6 6 0 01-3 11M3 13.5a6 6 0 013-11" />
@@ -199,7 +265,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
             </svg>
             Sincronizar
           </button>
-          <button onClick={light.mode === 'emergency' ? onResetEmergency : onEmergencyAll}
+          <button onClick={light.mode === 'emergency' ? handleResetEmergency : handleEmergencyAll}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border transition-all duration-200
               ${light.mode === 'emergency' ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'}`}>
             <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -210,6 +276,18 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
         </div>
       </div>
 
+      <hr className="border-gray-100" />
+
+      {/* Sección 6 — Aplicar Cambios */}
+      <button
+        onClick={aplicar}
+        className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 transition-colors shadow-lg shadow-forest/20 flex items-center justify-center gap-2"
+      >
+        <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+        Aplicar Cambios
+      </button>
     </div>
   )
 }

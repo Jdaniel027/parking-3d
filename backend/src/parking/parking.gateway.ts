@@ -34,6 +34,12 @@ export class ParkingGateway
     this.handleSerialData({ estados: [0, 1, 1, 1, 1] });
   }
 
+  @SubscribeMessage('simulate_parking')
+  handleSimulation(client: Socket, payload: { estados: number[] }) {
+    this.logger.log(`Simulación recibida: ${JSON.stringify(payload)}`);
+    this.handleSerialData(payload);
+  }
+
   @OnEvent('serial.data')
   handleSerialData(datos: { estados: number[] }) {
     const cajones = datos.estados.map((estado, i) => ({

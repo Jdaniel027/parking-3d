@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { useParkingData } from "../hooks/useParkingData";
+import { useParking } from "../hooks/useParking";
 
 function Elapsed({ parkedAt }: { parkedAt: number | null }) {
   const [now, setNow] = useState(Date.now());
@@ -111,9 +111,17 @@ function DonutChart({ pct }: { pct: number }) {
 }
 
 export default function MapaCajones() {
-  const { spots, available, total, totalEntries, dailyEntries, toggleSpot } = useParkingData();
-  const occupied = total - available;
-  const pct = Math.round((occupied / total) * 100);
+  const { cajones, ocupados, disponibles, porcentaje } = useParking();
+  const spots = cajones.map(c => ({
+    id: c.id,
+    occupied: c.ocupado,
+    parkedAt: null as number | null
+  }));
+  const available = disponibles;
+  const occupied = ocupados;
+  const pct = porcentaje;
+  const totalEntries = 0; // No disponible en backend
+  const dailyEntries = [0, 0, 0, 0, 0, 0, 0]; // No disponible en backend
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
