@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 export interface Cajon {
   id: number;
@@ -15,16 +15,19 @@ export interface ParkingUpdate {
 
 export const useParking = () => {
   const [data, setData] = useState<ParkingUpdate>({
-    cajones: Array.from({ length: 5 }, (_, i) => ({ id: i + 1, ocupado: false })),
+    cajones: Array.from({ length: 5 }, (_, i) => ({
+      id: i + 1,
+      ocupado: false,
+    })),
     ocupados: 0,
     disponibles: 5,
     porcentaje: 0,
   });
 
   useEffect(() => {
-    const socket: Socket = io('http://localhost:3000');
+    const socket: Socket = io("http://192.168.137.149:3000");
 
-    socket.on('parking_update', (update: ParkingUpdate) => {
+    socket.on("parking_update", (update: ParkingUpdate) => {
       setData(update);
     });
 

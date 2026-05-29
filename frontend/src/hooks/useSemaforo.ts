@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-export type SemaforoMode = 'automatico' | 'manual' | 'emergencia';
-export type SemaforoColor = 'verde' | 'amarillo' | 'rojo';
+export type SemaforoMode = "automatico" | "manual" | "emergencia";
+export type SemaforoColor = "verde" | "amarillo" | "rojo";
 
 export interface SemaforoPayload {
   verde?: number;
@@ -11,13 +11,13 @@ export interface SemaforoPayload {
 }
 
 export const useSemaforo = () => {
-  const [mode, setMode] = useState<SemaforoMode>('automatico');
+  const [mode, setMode] = useState<SemaforoMode>("automatico");
   const [semaforo, setSemaforo] = useState<number>(0); // 0 = todos
   const [payload, setPayload] = useState<SemaforoPayload>({
     verde: 10,
     amarillo: 3,
     rojo: 10,
-    color: 'verde'
+    color: "verde",
   });
 
   const aplicar = async () => {
@@ -25,28 +25,36 @@ export const useSemaforo = () => {
       const body = {
         mode,
         semaforo,
-        payload: mode === 'automatico' 
-          ? { verde: Number(payload.verde), amarillo: Number(payload.amarillo), rojo: Number(payload.rojo) }
-          : mode === 'manual'
-          ? { color: payload.color }
-          : {}
+        payload:
+          mode === "automatico"
+            ? {
+                verde: Number(payload.verde),
+                amarillo: Number(payload.amarillo),
+                rojo: Number(payload.rojo),
+              }
+            : mode === "manual"
+              ? { color: payload.color }
+              : {},
       };
 
-      console.log('Enviando comando de semáforo:', body);
+      console.log("Enviando comando de semáforo:", body);
 
-      const response = await fetch('http://localhost:3000/commands/sendSemaforo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        "http://192.168.137.149:3000/commands/sendSemaforo",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify(body),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Error enviando comando de semáforo:', error);
+      console.error("Error enviando comando de semáforo:", error);
     }
   };
 
@@ -57,6 +65,6 @@ export const useSemaforo = () => {
     setSemaforo,
     payload,
     setPayload,
-    aplicar
+    aplicar,
   };
 };
