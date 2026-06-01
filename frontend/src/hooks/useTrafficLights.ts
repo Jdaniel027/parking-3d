@@ -4,6 +4,9 @@ import { DEFAULT_CYCLE } from '../types/dashboard'
 
 const NAMES = ['Norte', 'Sur', 'Este', 'Oeste']
 
+const pairIds = (id: number) =>
+  id <= 2 ? [1, 2] : [3, 4]
+
 type Phase = 'ns-green' | 'ns-yellow' | 'eo-green' | 'eo-yellow'
 
 function phaseDuration(phase: Phase, c: TrafficCycle): number {
@@ -81,13 +84,14 @@ export function useTrafficLights() {
   }, [lights])
 
   const setMode = useCallback((id: number, mode: TrafficLightMode) => {
+    const ids = pairIds(id)
     setLights((prev) => {
       if (mode === 'emergency') {
         return prev.map((t) => ({ ...t, mode: 'emergency', activeColor: 'red' as LightColor }))
       }
       if (mode === 'automatic') {
         const phase = detectPhase(prev)
-        const inNS = id <= 2
+        const inNS = ids[0] <= 2
         const nsGreen = phase === 'ns-green'
         const nsYellow = phase === 'ns-yellow'
         const eoGreen = phase === 'eo-green'
@@ -99,15 +103,16 @@ export function useTrafficLights() {
         else if (!inNS && eoGreen) color = 'green'
         else if (!inNS && eoYellow) color = 'yellow'
         else color = 'red'
-        return prev.map((t) => (t.id === id ? { ...t, mode, activeColor: color } : t))
+        return prev.map((t) => (ids.includes(t.id) ? { ...t, mode, activeColor: color } : t))
       }
-      return prev.map((t) => (t.id === id ? { ...t, mode, activeColor: 'red' } : t))
+      return prev.map((t) => (ids.includes(t.id) ? { ...t, mode, activeColor: 'red' } : t))
     })
   }, [])
 
   const setActiveColor = useCallback((id: number, color: LightColor) => {
+    const ids = pairIds(id)
     setLights((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, activeColor: color } : t)),
+      prev.map((t) => (ids.includes(t.id) ? { ...t, activeColor: color } : t)),
     )
   }, [])
 

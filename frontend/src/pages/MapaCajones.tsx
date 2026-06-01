@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParking } from "../hooks/useParking";
 
 function Elapsed({ parkedAt }: { parkedAt: number | null }) {
@@ -120,32 +120,13 @@ export default function MapaCajones() {
   const available = disponibles;
   const occupied = ocupados;
   const pct = porcentaje;
-  const totalEntries = 0; // No disponible en backend
-  const dailyEntries = [0, 0, 0, 0, 0, 0, 0]; // No disponible en backend
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const totalEntries = 0;
+  const dailyEntries = [0, 0, 0, 0, 0, 0, 0];
+  const [ts, setTs] = useState(Date.now());
 
   useEffect(() => {
-    /*
-      Para conectar una cámara real, reemplaza el código de arriba con:
-
-      Opción 1 — Cámara USB/local:
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then((stream) => { if (videoRef.current) videoRef.current.srcObject = stream })
-
-      Opción 2 — Feed HTTP (MJPEG/RTSP):
-        videoRef.current.src = "http://192.168.1.100:8080/video"
-        videoRef.current.play()
-
-      Opción 3 — WebRTC:
-        const pc = new RTCPeerConnection(config)
-        pc.ontrack = (ev) => { if (videoRef.current) videoRef.current.srcObject = ev.streams[0] }
-
-      Para limpiar al desmontar:
-        return () => {
-          const s = videoRef.current?.srcObject as MediaStream
-          s?.getTracks().forEach((t) => t.stop())
-        }
-    */
+    const id = setInterval(() => setTs(Date.now()), 2000);
+    return () => clearInterval(id);
   }, []);
 
   const events = [
@@ -204,142 +185,11 @@ export default function MapaCajones() {
             </div>
 
             <div className="flex-1 relative bg-gradient-to-b from-gray-800 to-gray-900 min-h-0 overflow-hidden">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
+              <img
+                src={`http://${window.location.hostname}:3000/camera/en_vivo.jpg?t=${ts}`}
+                className="absolute inset-0 w-full h-full object-contain"
+                alt="Cámara en vivo"
               />
-
-              {/* simulated camera view — top-down perspective of parking row */}
-              <svg
-                viewBox="0 0 400 220"
-                className="w-full h-full p-3"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                <rect
-                  x={10}
-                  y={10}
-                  width={380}
-                  height={200}
-                  rx={4}
-                  fill="#1f2937"
-                />
-
-                {/* perspective lines */}
-                <line
-                  x1={40}
-                  y1={60}
-                  x2={360}
-                  y2={60}
-                  stroke="#374151"
-                  strokeWidth={1}
-                />
-                <line
-                  x1={40}
-                  y1={180}
-                  x2={360}
-                  y2={180}
-                  stroke="#374151"
-                  strokeWidth={1}
-                />
-
-                {/* parking spots row */}
-                {spots.map((s, i) => {
-                  const x = 45 + i * 68;
-                  const occ = s.occupied;
-                  const c = occ ? "#ef4444" : "#84cc16";
-                  return (
-                    <g key={s.id}>
-                      <rect
-                        x={x}
-                        y={70}
-                        width={58}
-                        height={100}
-                        rx={4}
-                        fill={occ ? "#450a0a20" : "#052e1620"}
-                        stroke={c}
-                        strokeWidth={occ ? 2 : 2}
-                        strokeOpacity={0.8}
-                      />
-                      {/* bay number */}
-                      <text
-                        x={x + 29}
-                        y={94}
-                        textAnchor="middle"
-                        fill={c}
-                        fontSize={14}
-                        fontWeight="bold"
-                        fontFamily="monospace"
-                      >
-                        {s.id}
-                      </text>
-                      {/* elapsed time + cost */}
-                      {occ && s.parkedAt && (() => {
-                        const sec = Math.floor((Date.now() - s.parkedAt) / 1000)
-                        const min = Math.floor(sec / 60)
-                        const ss = sec % 60
-                        const label = sec < 60 ? `${sec}s` : `${min}:${String(ss).padStart(2, "0")}`
-                        const cost = (sec < 120 ? 1 : Math.floor((sec - 120) / 60) + 2) * 15
-                        return (
-                          <>
-                            <text
-                              x={x + 29}
-                              y={126}
-                              textAnchor="middle"
-                              fill="#ef4444"
-                              fontSize={7}
-                              fontFamily="monospace"
-                              opacity={0.7}
-                            >
-                              {label}
-                            </text>
-                            <text
-                              x={x + 29}
-                              y={138}
-                              textAnchor="middle"
-                              fill="#ef4444"
-                              fontSize={6}
-                              fontFamily="monospace"
-                              opacity={0.6}
-                            >
-                              ${cost} MXN
-                            </text>
-                          </>
-                        )
-                      })()}
-                      {/* lane marking */}
-                      <line
-                        x1={x + 29}
-                        y1={70}
-                        x2={x + 29}
-                        y2={170}
-                        stroke={c}
-                        strokeWidth={0.5}
-                        strokeDasharray="4 4"
-                        opacity={0.4}
-                      />
-                    </g>
-                  );
-                })}
-
-                {/* edge markings */}
-                <line
-                  x1={40}
-                  y1={175}
-                  x2={360}
-                  y2={175}
-                  stroke="#4b5563"
-                  strokeWidth={1.5}
-                  strokeDasharray="8 4"
-                />
-              </svg>
-
-              {/* tech overlay */}
-              <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded text-[10px] font-mono text-green-400 tracking-tight">
-                ● LIVE (CAM_01 - Arducam) | 2026-05-18 19:59:02
-              </div>
             </div>
           </div>
 

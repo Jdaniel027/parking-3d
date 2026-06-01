@@ -43,7 +43,7 @@ def tomar_fotografia():
         "rpicam-still", 
         "-o", RUTA_IMAGEN_TEMP, 
         "-n", 
-        "-t", "500"
+        "-t", "200"
     ]
     subprocess.run(comando, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
     try:
         while True:
             analizar_estacionamiento()
-            time.sleep(2)
+            time.sleep(1)
     except KeyboardInterrupt:
         print("\n[INFO] Motor detenido.")
         if sio.connected:

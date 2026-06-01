@@ -16,22 +16,20 @@ export class ParkingGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new Logger(ParkingGateway.name);
+  private ultimoEstado: { cajones: { id: number; ocupado: boolean }[]; ocupados: number; disponibles: number; porcentaje: number } | null = null;
 
   @WebSocketServer()
   server!: Server;
 
   handleConnection(client: Socket) {
     this.logger.log(`Cliente conectado: ${client.id}`);
+    if (this.ultimoEstado) {
+      client.emit('parking_update', this.ultimoEstado);
+    }
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Cliente desconectado: ${client.id}`);
-  }
-
-  // ← TEMPORAL: simula datos del ESP32 para probar
-  @SubscribeMessage('test')
-  handleTest() {
-    this.handleSerialData({ estados: [0, 1, 1, 1, 1] });
   }
 
   @SubscribeMessage('simulate_parking')
@@ -50,11 +48,13 @@ export class ParkingGateway
     const ocupados = cajones.filter((c) => c.ocupado).length;
     const total = cajones.length;
 
-    this.server.emit('parking_update', {
+    this.ultimoEstado = {
       cajones,
       ocupados,
       disponibles: total - ocupados,
       porcentaje: Math.round((ocupados / total) * 100),
-    });
+    };
+
+    this.server.emit('parking_update', this.ultimoEstado);
   }
 }

@@ -13,10 +13,16 @@ export class CommandsService {
     return { status: 'enviado', comando: dto };
   }
   enviarComandoSemaforo(dto: SemaforoDto) {
-    // dto ya viene validado por el DTO
-    // lo mandamos directo al ESP32 por Serial
-    this.logger.log(`Enviando comando semáforo: ${JSON.stringify(dto)}`);
-    this.serialService.send(dto);
+    const ids = dto.semaforo === 0
+      ? [1, 2, 3, 4]
+      : [dto.semaforo];
+
+    for (const id of ids) {
+      const payload = { ...dto, semaforo: id };
+      this.logger.log(`Enviando comando semáforo ${id}: ${JSON.stringify(payload)}`);
+      this.serialService.send(payload);
+    }
+
     return { status: 'enviado', comando: dto };
   }
 }

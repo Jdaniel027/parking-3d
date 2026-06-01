@@ -13,8 +13,14 @@ export interface ParkingUpdate {
   porcentaje: number;
 }
 
-export const useParking = () => {
-  const [data, setData] = useState<ParkingUpdate>({
+const STORAGE_KEY = "parking_last_state";
+
+const loadSaved = (): ParkingUpdate => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return {
     cajones: Array.from({ length: 5 }, (_, i) => ({
       id: i + 1,
       ocupado: false,
@@ -22,13 +28,20 @@ export const useParking = () => {
     ocupados: 0,
     disponibles: 5,
     porcentaje: 0,
-  });
+  };
+};
+
+export const useParking = () => {
+  const [data, setData] = useState<ParkingUpdate>(loadSaved);
 
   useEffect(() => {
-    const socket: Socket = io("http://192.168.137.44:3000");
+    const socket: Socket = io(`http://${window.location.hostname}:3000`);
 
     socket.on("parking_update", (update: ParkingUpdate) => {
       setData(update);
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(update));
+      } catch {}
     });
 
     return () => {

@@ -20,39 +20,51 @@ export const useSemaforo = () => {
     color: "verde",
   });
 
+  const getIds = () => {
+    if (semaforo === 0) return [1, 2, 3, 4];
+    if (semaforo === 1 || semaforo === 2) return [1, 2];
+    return [3, 4];
+  };
+
   const aplicar = async () => {
+    const backendUrl = `http://${window.location.hostname}:3000`;
+
     try {
-      const body = {
-        mode,
-        semaforo,
-        payload:
-          mode === "automatico"
-            ? {
-                verde: Number(payload.verde),
-                amarillo: Number(payload.amarillo),
-                rojo: Number(payload.rojo),
-              }
-            : mode === "manual"
-              ? { color: payload.color }
-              : {},
-      };
+      const promises = getIds().map(async (id) => {
+        const body = {
+          mode,
+          semaforo: id,
+          payload:
+            mode === "automatico"
+              ? {
+                  verde: Number(payload.verde),
+                  amarillo: Number(payload.amarillo),
+                  rojo: Number(payload.rojo),
+                }
+              : mode === "manual"
+                ? { color: payload.color }
+                : {},
+        };
 
-      console.log("Enviando comando de semáforo:", body);
+        console.log(`Enviando comando para semáforo ${id}:`, body);
 
-      const response = await fetch(
-        "http://192.168.137.44:3000/commands/sendSemaforo",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${backendUrl}/commands/sendSemaforo`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
           },
-          body: JSON.stringify(body),
-        },
-      );
+        );
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+      });
+
+      await Promise.all(promises);
     } catch (error) {
       console.error("Error enviando comando de semáforo:", error);
     }
