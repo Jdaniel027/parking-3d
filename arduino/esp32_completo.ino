@@ -130,7 +130,8 @@ void procesarSemaforo(JsonDocument& doc) {
     s.amarilloTime = doc["payload"]["amarillo"];
     s.rojoTime = doc["payload"]["rojo"];
     s.lastChange = millis();
-    s.etapa = 1;
+    s.etapa = (id <= 2) ? 1 : 3;
+    prenderColor(id, (id <= 2) ? "verde" : "rojo");
   }
   else if (mode == "emergencia") {
     s.modo = EMERGENCIA;
