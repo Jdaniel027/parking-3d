@@ -28,8 +28,12 @@ const int ANGULO_CERRADO = 45;
 const int ANGULO_ABIERTO = 130;
 const int DISTANCIA_DETECCION = 10;
 
+const unsigned long TIEMPO_ABIERTO = 3000;
+
 Servo servoEntrada;
 Servo servoSalida;
+unsigned long ultimaDeteccionEntrada = 0;
+unsigned long ultimaDeteccionSalida  = 0;
 
 // ==========================================
 // VARIABLES DE ESTADO - SEMÁFOROS
@@ -45,7 +49,8 @@ struct Semaforo {
 Semaforo semaforos[4];
 int intensidadOeste = 0;
 int intensidadEste  = 0;
-bool modoEco = false;
+bool ecoOeste = false;
+bool ecoEste  = false;
 int disponibles = 0;
 
 int pinesSem1_2[] = {S1_2_R, S1_2_Y, S1_2_G};
@@ -169,42 +174,37 @@ void prenderColor(int semId, String color) {
 }
 
 // ==========================================
-// LUCES
+// LUCES - POR ZONA INDEPENDIENTE
 // ==========================================
 void procesarLuces(JsonDocument& doc) {
   String zona = doc["zona"];
   String mode = doc["mode"];
 
+  bool afectaOeste = (zona == "oeste" || zona == "ambas");
+  bool afectaEste  = (zona == "este"  || zona == "ambas");
+
   if (mode == "apagar") {
-    if (zona == "oeste" || zona == "ambas") intensidadOeste = 0;
-    if (zona == "este"  || zona == "ambas") intensidadEste  = 0;
-    modoEco = false;
+    if (afectaOeste) { intensidadOeste = 0; ecoOeste = false; analogWrite(PIN_OESTE, 0); }
+    if (afectaEste)  { intensidadEste  = 0; ecoEste  = false; analogWrite(PIN_ESTE, 0); }
   }
   else if (mode == "manual") {
-    int val = doc["payload"]["intensidad"];
-    int pwm = map(val, 0, 100, 0, 255);
-    if (zona == "oeste" || zona == "ambas") intensidadOeste = pwm;
-    if (zona == "este"  || zona == "ambas") intensidadEste  = pwm;
-    modoEco = false;
+    int pwm = map((int)doc["payload"]["intensidad"], 0, 100, 0, 255);
+    if (afectaOeste) { intensidadOeste = pwm; ecoOeste = false; analogWrite(PIN_OESTE, pwm); }
+    if (afectaEste)  { intensidadEste  = pwm; ecoEste  = false; analogWrite(PIN_ESTE, pwm); }
   }
   else if (mode == "eco") {
-    modoEco = true;
-  }
-
-  if (!modoEco) {
-    analogWrite(PIN_OESTE, intensidadOeste);
-    analogWrite(PIN_ESTE,  intensidadEste);
+    if (afectaOeste) ecoOeste = true;
+    if (afectaEste)  ecoEste  = true;
   }
 }
 
 void actualizarLucesEco() {
-  if (!modoEco) return;
-
   int nivelLuz = analogRead(PIN_LDR);
-  int pwm = map(nivelLuz, 0, 4095, 255, 50);
+  int pwm = map(nivelLuz, 0, 1200, 255, 0);
+  pwm = constrain(pwm, 0, 255);
 
-  analogWrite(PIN_OESTE, pwm);
-  analogWrite(PIN_ESTE,  pwm);
+  if (ecoOeste) analogWrite(PIN_OESTE, pwm);
+  if (ecoEste)  analogWrite(PIN_ESTE, pwm);
 }
 
 // ==========================================
@@ -228,13 +228,21 @@ void actualizarBarreras() {
   long distEntrada = obtenerDistancia(TRIG_ENTRADA, ECHO_ENTRADA);
   long distSalida  = obtenerDistancia(TRIG_SALIDA,  ECHO_SALIDA);
 
+  unsigned long ahora = millis();
+
   if (distEntrada < DISTANCIA_DETECCION && disponibles > 0) {
+    servoEntrada.write(ANGULO_ABIERTO);
+    ultimaDeteccionEntrada = ahora;
+  } else if (ahora - ultimaDeteccionEntrada < TIEMPO_ABIERTO) {
     servoEntrada.write(ANGULO_ABIERTO);
   } else {
     servoEntrada.write(ANGULO_CERRADO);
   }
 
   if (distSalida < DISTANCIA_DETECCION) {
+    servoSalida.write(ANGULO_ABIERTO);
+    ultimaDeteccionSalida = ahora;
+  } else if (ahora - ultimaDeteccionSalida < TIEMPO_ABIERTO) {
     servoSalida.write(ANGULO_ABIERTO);
   } else {
     servoSalida.write(ANGULO_CERRADO);

@@ -20,29 +20,37 @@ export const useSemaforo = () => {
     color: "verde",
   });
 
-  const getIds = () => {
-    if (semaforo === 0) return [1, 2, 3, 4];
-    if (semaforo === 1 || semaforo === 2) return [1, 2];
+  const getIds = (overrideSemaforo?: number) => {
+    const s = overrideSemaforo ?? semaforo;
+    if (s === 0) return [1, 2, 3, 4];
+    if (s === 1 || s === 2) return [1, 2];
     return [3, 4];
   };
 
-  const aplicar = async () => {
+  const aplicar = async (override?: {
+    mode?: SemaforoMode;
+    semaforo?: number;
+    payload?: SemaforoPayload;
+  }) => {
+    const effectiveMode = override?.mode ?? mode;
+    const effectiveSemaforo = override?.semaforo ?? semaforo;
+    const effectivePayload = override?.payload ?? payload;
     const backendUrl = `http://${window.location.hostname}:3000`;
 
     try {
-      const promises = getIds().map(async (id) => {
+      const promises = getIds(effectiveSemaforo).map(async (id) => {
         const body = {
-          mode,
+          mode: effectiveMode,
           semaforo: id,
           payload:
-            mode === "automatico"
+            effectiveMode === "automatico"
               ? {
-                  verde: Number(payload.verde),
-                  amarillo: Number(payload.amarillo),
-                  rojo: Number(payload.rojo),
+                  verde: Number(effectivePayload.verde),
+                  amarillo: Number(effectivePayload.amarillo),
+                  rojo: Number(effectivePayload.rojo),
                 }
-              : mode === "manual"
-                ? { color: payload.color }
+              : effectiveMode === "manual"
+                ? { color: effectivePayload.color }
                 : {},
         };
 

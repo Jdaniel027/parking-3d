@@ -86,20 +86,22 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
   const handleSync = () => {
     if (!light) return;
     onSyncAll(light.id);
-    setSemaforo(0); // Forzamos el 0 para mandar a todos
-    // El modo y payload se quedan como están (los del semáforo actual)
+    setSemaforo(0);
+    aplicar({ semaforo: 0 });
   };
 
   const handleEmergencyAll = () => {
     onEmergencyAll();
     setSemaforo(0);
-    setMode('emergencia'); // Modo correcto para el backend
+    setMode('emergencia');
+    aplicar({ mode: 'emergencia', semaforo: 0 });
   };
 
   const handleResetEmergency = () => {
     onResetEmergency();
     setSemaforo(0);
     setMode('automatico');
+    aplicar({ mode: 'automatico', semaforo: 0 });
   };
 
   if (!light) {
@@ -280,7 +282,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
 
       {/* Sección 6 — Aplicar Cambios */}
       <button
-        onClick={aplicar}
+        onClick={() => aplicar()}
         className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 transition-colors shadow-lg shadow-forest/20 flex items-center justify-center gap-2"
       >
         <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
