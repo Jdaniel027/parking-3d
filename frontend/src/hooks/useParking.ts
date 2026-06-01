@@ -25,7 +25,7 @@ export const useParking = () => {
   });
 
   useEffect(() => {
-    const socket: Socket = io("http://192.168.137.149:3000");
+    const socket: Socket = io("http://192.168.137.44:3000");
 
     socket.on("parking_update", (update: ParkingUpdate) => {
       setData(update);

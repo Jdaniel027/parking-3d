@@ -40,7 +40,7 @@ export const useSemaforo = () => {
       console.log("Enviando comando de semáforo:", body);
 
       const response = await fetch(
-        "http://192.168.137.149:3000/commands/sendSemaforo",
+        "http://192.168.137.44:3000/commands/sendSemaforo",
         {
           method: "POST",
           headers: {

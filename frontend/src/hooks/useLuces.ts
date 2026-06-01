@@ -36,7 +36,7 @@ export const useLuces = () => {
       console.log("Enviando comando de luces:", body);
 
       const response = await fetch(
-        "http://192.168.137.149:3000/commands/sendLuces",
+        "http://192.168.137.44:3000/commands/sendLuces",
         {
           method: "POST",
           headers: {
