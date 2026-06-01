@@ -46,6 +46,7 @@ Semaforo semaforos[4];
 int intensidadOeste = 0;
 int intensidadEste  = 0;
 bool modoEco = false;
+int disponibles = 0;
 
 int pinesSem1_2[] = {S1_2_R, S1_2_Y, S1_2_G};
 int pinesSem3_4[] = {S3_4_R, S3_4_Y, S3_4_G};
@@ -85,7 +86,12 @@ void loop() {
     DeserializationError error = deserializeJson(doc, Serial);
 
     if (!error) {
-      if (doc.containsKey("semaforo")) {
+      if (doc.containsKey("type")) {
+        String type = doc["type"];
+        if (type == "parking") {
+          disponibles = doc["disponibles"];
+        }
+      } else if (doc.containsKey("semaforo")) {
         procesarSemaforo(doc);
       } else if (doc.containsKey("zona")) {
         procesarLuces(doc);
@@ -222,7 +228,7 @@ void actualizarBarreras() {
   long distEntrada = obtenerDistancia(TRIG_ENTRADA, ECHO_ENTRADA);
   long distSalida  = obtenerDistancia(TRIG_SALIDA,  ECHO_SALIDA);
 
-  if (distEntrada < DISTANCIA_DETECCION) {
+  if (distEntrada < DISTANCIA_DETECCION && disponibles > 0) {
     servoEntrada.write(ANGULO_ABIERTO);
   } else {
     servoEntrada.write(ANGULO_CERRADO);

@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Logger } from '@nestjs/common';
+import { SerialService } from '../serial/serial.service';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -17,6 +18,8 @@ export class ParkingGateway
 {
   private readonly logger = new Logger(ParkingGateway.name);
   private ultimoEstado: { cajones: { id: number; ocupado: boolean }[]; ocupados: number; disponibles: number; porcentaje: number } | null = null;
+
+  constructor(private readonly serialService: SerialService) {}
 
   @WebSocketServer()
   server!: Server;
@@ -48,13 +51,16 @@ export class ParkingGateway
     const ocupados = cajones.filter((c) => c.ocupado).length;
     const total = cajones.length;
 
+    const disponibles = total - ocupados;
+
     this.ultimoEstado = {
       cajones,
       ocupados,
-      disponibles: total - ocupados,
+      disponibles,
       porcentaje: Math.round((ocupados / total) * 100),
     };
 
+    this.serialService.sendParkingState(disponibles);
     this.server.emit('parking_update', this.ultimoEstado);
   }
 }

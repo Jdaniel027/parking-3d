@@ -37,9 +37,12 @@ export class SerialService implements OnModuleInit {
     });
   }
 
-  // Para mandar comandos al ESP32 (lo usarás después)
   send(payload: object): void {
     const mensaje = JSON.stringify(payload) + '\n';
     this.port.write(mensaje);
+  }
+
+  sendParkingState(disponibles: number): void {
+    this.send({ type: 'parking', disponibles });
   }
 }
