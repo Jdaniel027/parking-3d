@@ -62,13 +62,17 @@ int pinesSem3_4[] = {S3_4_R, S3_4_Y, S3_4_G};
 void setup() {
   Serial.begin(115200);
 
-  int pines[] = {S1_2_R, S1_2_Y, S1_2_G, S3_4_R, S3_4_Y, S3_4_G, PIN_OESTE, PIN_ESTE};
+  int pines[] = {S1_2_R, S1_2_Y, S1_2_G, S3_4_R, S3_4_Y, S3_4_G};
   for (int p : pines) {
     pinMode(p, OUTPUT);
     digitalWrite(p, LOW);
   }
 
   pinMode(PIN_LDR, INPUT);
+  ledcAttach(PIN_OESTE, 5000, 8);
+  ledcAttach(PIN_ESTE, 5000, 8);
+  ledcWrite(PIN_OESTE, 0);
+  ledcWrite(PIN_ESTE, 0);
   pinMode(TRIG_ENTRADA, OUTPUT);
   pinMode(ECHO_ENTRADA, INPUT);
   pinMode(TRIG_SALIDA, OUTPUT);
@@ -185,13 +189,13 @@ void procesarLuces(JsonDocument& doc) {
   bool afectaEste  = (zona == "este"  || zona == "ambas");
 
   if (mode == "apagar") {
-    if (afectaOeste) { intensidadOeste = 0; ecoOeste = false; analogWrite(PIN_OESTE, 0); }
-    if (afectaEste)  { intensidadEste  = 0; ecoEste  = false; analogWrite(PIN_ESTE, 0); }
+    if (afectaOeste) { intensidadOeste = 0; ecoOeste = false; ledcWrite(PIN_OESTE, 0); }
+    if (afectaEste)  { intensidadEste  = 0; ecoEste  = false; ledcWrite(PIN_ESTE, 0); }
   }
   else if (mode == "manual") {
     int pwm = map((int)doc["payload"]["intensidad"], 0, 100, 0, 255);
-    if (afectaOeste) { intensidadOeste = pwm; ecoOeste = false; analogWrite(PIN_OESTE, pwm); }
-    if (afectaEste)  { intensidadEste  = pwm; ecoEste  = false; analogWrite(PIN_ESTE, pwm); }
+    if (afectaOeste) { intensidadOeste = pwm; ecoOeste = false; ledcWrite(PIN_OESTE, pwm); }
+    if (afectaEste)  { intensidadEste  = pwm; ecoEste  = false; ledcWrite(PIN_ESTE, pwm); }
   }
   else if (mode == "eco") {
     if (afectaOeste) ecoOeste = true;
@@ -204,8 +208,8 @@ void actualizarLucesEco() {
   int pwm = map(nivelLuz, 0, 1200, 255, 0);
   pwm = constrain(pwm, 0, 255);
 
-  if (ecoOeste) analogWrite(PIN_OESTE, pwm);
-  if (ecoEste)  analogWrite(PIN_ESTE, pwm);
+  if (ecoOeste) ledcWrite(PIN_OESTE, pwm);
+  if (ecoEste)  ledcWrite(PIN_ESTE, pwm);
 }
 
 // ==========================================

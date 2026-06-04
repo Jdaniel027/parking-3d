@@ -39,17 +39,19 @@ function ParkingBay({
 }) {
   return (
     <div
-      className={`flex flex-col items-stretch rounded-xl border-2 transition-all duration-300 overflow-hidden ${occupied ? "border-red-400 bg-red-50" : "border-lime-400 bg-lime-50"}`}
+      className={`flex flex-col items-stretch rounded-xl border-2 transition-all duration-200 overflow-hidden cursor-default select-none
+        hover:shadow-md active:scale-[0.97]
+        ${occupied ? "border-red-400 bg-red-50 hover:shadow-red-200/50" : "border-lime-400 bg-lime-50 hover:shadow-lime-200/50"}`}
     >
       <div className="flex items-center justify-center py-8">
         <span
-          className={`text-3xl font-black ${occupied ? "text-red-500" : "text-lime-600"}`}
+          className={`text-3xl font-black transition-colors duration-200 ${occupied ? "text-red-500" : "text-lime-600"}`}
         >
           {num}
         </span>
       </div>
       <div
-        className={`text-center text-[9px] font-semibold py-1 ${occupied ? "bg-red-100 text-red-700" : "bg-lime-100 text-lime-700"}`}
+        className={`text-center text-[9px] font-semibold py-1 transition-colors duration-200 ${occupied ? "bg-red-100 text-red-700" : "bg-lime-100 text-lime-700"}`}
       >
         {occupied ? (
           <Elapsed parkedAt={parkedAt} />
@@ -243,7 +245,7 @@ export default function MapaCajones() {
             <div className="flex items-center gap-6">
               <DonutChart pct={pct} />
               <div className="flex gap-3">
-                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-lime-300 bg-lime-50">
+                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-lime-300 bg-lime-50 transition-all duration-200 hover:shadow-md hover:shadow-lime-200/50 hover:scale-[1.02]">
                   <span className="w-3 h-3 rounded-full bg-lime-500" />
                   <div>
                     <span className="text-[10px] text-lime-700 font-medium">
@@ -254,7 +256,7 @@ export default function MapaCajones() {
                     </div>
                   </div>
                 </div>
-                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-red-300 bg-red-50">
+                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-red-300 bg-red-50 transition-all duration-200 hover:shadow-md hover:shadow-red-200/50 hover:scale-[1.02]">
                   <span className="w-3 h-3 rounded-full bg-red-500" />
                   <div>
                     <span className="text-[10px] text-red-700 font-medium">
@@ -264,7 +266,7 @@ export default function MapaCajones() {
                       {occupied}
                     </div>
                   </div>
-            </div>
+                </div>
             <div className="mt-3 flex items-center gap-1.5 text-[10px] text-gray-400">
               <svg viewBox="0 0 12 12" className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 1v5l3 3" />
@@ -322,9 +324,9 @@ export default function MapaCajones() {
                     const labels = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
                     const today = new Date().getDay()
                     return (
-                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
+                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1 group">
                         <div
-                          className="w-full rounded-sm transition-all duration-500"
+                          className="w-full rounded-sm transition-all duration-300 group-hover:brightness-110 group-hover:scale-x-110 group-hover:origin-bottom"
                           style={{ height: `${Math.max(h, 6)}%`, background: i === today ? '#06b6d4' : '#cbd5e1' }}
                         />
                         <span className="text-[8px] font-medium text-gray-400">{labels[i]}</span>

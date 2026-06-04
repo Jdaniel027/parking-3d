@@ -160,7 +160,7 @@ export default function TrafficMap({ lights, selectedId, onSelect }: Props) {
               <g
                 key={tl.id}
                 onClick={() => onSelect(tl.id)}
-                className="cursor-pointer"
+                className="cursor-pointer transition-all duration-150 hover:opacity-85 active:opacity-70"
               >
                 {isSelected && (
                   <rect

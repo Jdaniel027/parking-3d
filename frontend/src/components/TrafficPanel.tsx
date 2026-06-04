@@ -180,16 +180,17 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
         <div className="flex gap-1.5">
           {(['automatic', 'manual', 'emergency'] as const).map((m) => {
             const active = light.mode === m
-            const base = 'flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium border transition-all duration-200 cursor-pointer'
+            const base = 'flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium border transition-all duration-150 cursor-pointer select-none'
             const style = active
               ? m === 'automatic'
-                ? 'bg-lime-50 border-lime-300 text-lime-700'
+                ? 'bg-lime-50 border-lime-300 text-lime-700 shadow-xs'
                 : m === 'manual'
-                  ? 'bg-cyan-50 border-cyan-300 text-cyan-700'
-                  : 'bg-red-50 border-red-300 text-red-700'
-              : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'
+                  ? 'bg-cyan-50 border-cyan-300 text-cyan-700 shadow-xs'
+                  : 'bg-red-50 border-red-300 text-red-700 shadow-xs'
+              : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600 hover:bg-gray-50 active:bg-gray-100'
             return (
-              <button key={m} onClick={() => handleSetMode(m)} className={`${base} ${style}`}>
+              <button key={m} onClick={() => handleSetMode(m)}
+                className={`${base} ${style} active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-cyan-accent/40 focus-visible:outline-none`}>
                 <ModeIcon mode={m} />
                 {MODE_LABEL[m]}
               </button>
@@ -209,11 +210,12 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
             const active = isManual && light.activeColor === c
             return (
               <button key={c} disabled={!isManual} onClick={() => handleSetColor(c)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all duration-200
-                  ${isManual ? (active ? 'ring-1 ring-inset ring-current' : '') : 'opacity-40 cursor-not-allowed'}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all duration-150 select-none
+                  ${isManual ? (active ? 'ring-1 ring-inset ring-current shadow-xs' : 'hover:brightness-95 active:brightness-90') : 'opacity-40 cursor-not-allowed'}
                   ${c === 'green' ? (isManual ? 'bg-lime-50 border-lime-300 text-lime-700' : 'bg-white border-gray-200 text-gray-300') : ''}
                   ${c === 'yellow' ? (isManual ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-white border-gray-200 text-gray-300') : ''}
-                  ${c === 'red' ? (isManual ? 'bg-red-50 border-red-300 text-red-700' : 'bg-white border-gray-200 text-gray-300') : ''}`}>
+                  ${c === 'red' ? (isManual ? 'bg-red-50 border-red-300 text-red-700' : 'bg-white border-gray-200 text-gray-300') : ''}
+                  ${isManual ? 'active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-cyan-accent/40 focus-visible:outline-none' : ''}`}>
                 <span className={`w-2.5 h-2.5 rounded-full ${c === 'green' ? 'bg-lime-500' : c === 'yellow' ? 'bg-amber-400' : 'bg-red-400'}`} />
                 {labels[c]}
               </button>
@@ -243,7 +245,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
                     const v = parseInt(e.target.value, 10); if (isNaN(v)) return
                     handleSetCycle(key, clamp(v))
                   }}
-                  className={`w-full px-1.5 py-1.5 rounded-lg border text-xs font-bold text-center outline-none transition-all ${ring} ${text} focus:ring-2`} />
+                  className={`w-full px-1.5 py-1.5 rounded-lg border text-xs font-bold text-center outline-none transition-all duration-150 ${ring} ${text} focus:ring-2 hover:brightness-95`} />
               </label>
             )
           })}
@@ -260,7 +262,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
         <span className="text-[11px] text-gray-500 font-medium mb-2 block">Acciones Rápidas</span>
         <div className="flex gap-2">
           <button onClick={handleSync}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-all duration-200">
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200 active:scale-[0.96] transition-all duration-150 select-none focus-visible:ring-2 focus-visible:ring-cyan-accent/40 focus-visible:outline-none">
             <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2.5a6 6 0 01-3 11M3 13.5a6 6 0 013-11" />
               <path d="M13 2.5v4h-4M3 13.5v-4h4" />
@@ -268,8 +270,8 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
             Sincronizar
           </button>
           <button onClick={light.mode === 'emergency' ? handleResetEmergency : handleEmergencyAll}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border transition-all duration-200
-              ${light.mode === 'emergency' ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'}`}>
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border transition-all duration-150 select-none active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-cyan-accent/40 focus-visible:outline-none
+              ${light.mode === 'emergency' ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100 active:bg-amber-200' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100 active:bg-red-200'}`}>
             <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 2L2 14h12L8 2zM8 10V6M8 11.5v.5" />
             </svg>
@@ -283,7 +285,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
       {/* Sección 6 — Aplicar Cambios */}
       <button
         onClick={() => aplicar()}
-        className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 transition-colors shadow-lg shadow-forest/20 flex items-center justify-center gap-2"
+        className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 active:bg-forest/80 active:scale-[0.98] transition-all duration-150 shadow-lg shadow-forest/20 hover:shadow-xl hover:shadow-forest/30 flex items-center justify-center gap-2 select-none focus-visible:ring-2 focus-visible:ring-forest/60 focus-visible:outline-none"
       >
         <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

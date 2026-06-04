@@ -110,7 +110,7 @@ export default function LightingMap({ zones, selectedZoneId, onSelectZone, onTog
           const borderColor = sel ? (off ? "#ef4444" : "#22c55e") : (off ? "#1e293b" : "rgba(124, 58, 237, 0.3)");
 
           return (
-            <g key={`b-${b.zoneId}`} onClick={() => onSelectZone(b.zoneId)} style={{ cursor: "pointer" }}>
+            <g key={`b-${b.zoneId}`} onClick={() => onSelectZone(b.zoneId)} className="cursor-pointer transition-all duration-150 hover:opacity-85 active:opacity-70">
               {sel && !off && (
                 <path
                   d={b.path}
@@ -181,7 +181,7 @@ export default function LightingMap({ zones, selectedZoneId, onSelectZone, onTog
                 fill={isActive ? "#c4b5fd" : "#1e293b"}
                 stroke={isActive ? (az ? "#84cc16" : "#a78bfa") : "#334155"}
                 strokeWidth={isActive ? 2 : 1}
-                className="transition-all duration-200 hover:brightness-150"
+                className="transition-all duration-150 hover:brightness-150 hover:scale-125 active:scale-110"
                 onClick={() => onToggleLamp(z.id, lamp.id)}
                 style={{ cursor: "pointer" }}
               />
