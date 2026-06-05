@@ -1,6 +1,6 @@
 import { useSemaforo, SemaforoMode, SemaforoColor } from '../hooks/useSemaforo'
 import type { TrafficLight, LightColor, TrafficCycle } from '../types/dashboard'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   light: TrafficLight | null
@@ -41,13 +41,12 @@ function ModeIcon({ mode }: { mode: string }) {
 
 export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle, onSyncAll, onEmergencyAll, onResetEmergency }: Props) {
   const { mode, setMode, semaforo, setSemaforo, payload, setPayload, aplicar } = useSemaforo();
+  const [dirty, setDirty] = useState(false);
 
   // Usamos un ref para rastrear qué semáforo está cargado y evitar sobreescrituras accidentales del "0"
   const lastLoadedId = useRef<number | null>(null);
 
   useEffect(() => {
-    // Solo cargamos los datos del semáforo si el usuario seleccionó uno DIFERENTE
-    // o si es la primera vez que se carga uno.
     if (light && lastLoadedId.current !== light.id) {
       setSemaforo(light.id);
       setMode(light.mode === 'automatic' ? 'automatico' : light.mode === 'manual' ? 'manual' : 'emergencia');
@@ -57,6 +56,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
         rojo: light.cycle.rojo,
         color: light.activeColor === 'green' ? 'verde' : light.activeColor === 'yellow' ? 'amarillo' : 'rojo'
       });
+      setDirty(false);
       lastLoadedId.current = light.id;
     }
   }, [light, setSemaforo, setMode, setPayload]);
@@ -64,8 +64,9 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
   const handleSetMode = (m: TrafficLight['mode']) => {
     if (!light) return;
     onSetMode(light.id, m);
-    setSemaforo(light.id); // Aseguramos que si cambia modo, vuelve a su ID individual
+    setSemaforo(light.id);
     setMode(m === 'automatic' ? 'automatico' : m === 'manual' ? 'manual' : 'emergencia');
+    setDirty(true);
   };
 
   const handleSetColor = (c: LightColor) => {
@@ -73,6 +74,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
     onSetColor(light.id, c);
     setSemaforo(light.id);
     setPayload(prev => ({ ...prev, color: c === 'green' ? 'verde' : c === 'yellow' ? 'amarillo' : 'rojo' }));
+    setDirty(true);
   };
 
   const handleSetCycle = (key: 'verde' | 'amarillo' | 'rojo', val: number) => {
@@ -81,6 +83,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
     onSetCycle(light.id, newCycle);
     setSemaforo(light.id);
     setPayload(prev => ({ ...prev, [key]: val }));
+    setDirty(true);
   };
 
   const handleSync = () => {
@@ -88,6 +91,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
     onSyncAll(light.id);
     setSemaforo(0);
     aplicar({ semaforo: 0 });
+    setDirty(false);
   };
 
   const handleEmergencyAll = () => {
@@ -95,6 +99,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
     setSemaforo(0);
     setMode('emergencia');
     aplicar({ mode: 'emergencia', semaforo: 0 });
+    setDirty(false);
   };
 
   const handleResetEmergency = () => {
@@ -102,6 +107,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
     setSemaforo(0);
     setMode('automatico');
     aplicar({ mode: 'automatico', semaforo: 0 });
+    setDirty(false);
   };
 
   if (!light) {
@@ -127,7 +133,7 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-700">Semáforo Seleccionado</span>
             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
-              {semaforo === 0 ? 'TODOS (Sincronizado)' : light.name}
+              {semaforo === 0 ? 'TODOS (Sincronizado)' : (light.id <= 2 ? 'Norte + Sur' : 'Este + Oeste')}
             </span>
           </div>
           <div className="flex items-center gap-2 mt-2">
@@ -282,8 +288,12 @@ export default function TrafficPanel({ light, onSetMode, onSetColor, onSetCycle,
 
       {/* Sección 6 — Aplicar Cambios */}
       <button
-        onClick={() => aplicar()}
-        className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 transition-colors shadow-lg shadow-forest/20 flex items-center justify-center gap-2"
+        onClick={() => { aplicar(); setDirty(false); }}
+        disabled={!dirty}
+        className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-200
+          ${dirty
+            ? 'bg-forest text-white hover:bg-forest/90 shadow-lg shadow-forest/20 cursor-pointer'
+            : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
       >
         <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />

@@ -153,13 +153,13 @@ export default function TrafficMap({ lights, selectedId, onSelect }: Props) {
           {lights.map((tl) => {
             const pos = POSITIONS[tl.id]
             if (!pos) return null
-            const isSelected = tl.id === selectedId
+            const isSelected = selectedId !== null && ((tl.id <= 2 && selectedId <= 2) || (tl.id > 2 && selectedId > 2))
             const rotation = ROTATIONS[tl.id]
 
             return (
               <g
                 key={tl.id}
-                onClick={() => onSelect(tl.id)}
+                onClick={() => onSelect(tl.id <= 2 ? 1 : 3)}
                 className="cursor-pointer"
               >
                 {isSelected && (

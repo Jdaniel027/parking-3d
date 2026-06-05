@@ -129,21 +129,6 @@ export default function MapaCajones() {
     return () => clearInterval(id);
   }, []);
 
-  const events = [
-    {
-      time: "19:54:12",
-      msg: "Vehículo detectado en Cajón 2",
-      state: "Ocupado",
-    },
-    { time: "19:58:01", msg: "Cajón 1 liberado", state: "Libre" },
-    { time: "20:00:30", msg: "Cajón 3 detectado como Libre", state: "Libre" },
-    {
-      time: "20:01:45",
-      msg: "Vehículo detectado en Cajón 5",
-      state: "Ocupado",
-    },
-  ];
-
   return (
     <div className="h-full flex flex-col gap-4">
       {/* title */}
@@ -193,44 +178,6 @@ export default function MapaCajones() {
             </div>
           </div>
 
-          {/* Log panel */}
-          <div className="bg-gray-950 rounded-xl border border-gray-700 shrink-0">
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-900 border-b border-gray-700">
-              <svg
-                viewBox="0 0 16 16"
-                className="w-3.5 h-3.5 text-cyan-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="2" y="2" width="12" height="12" rx="2" />
-                <path d="M5 5h6M5 8h6M5 11h4" />
-              </svg>
-              <span className="text-[11px] font-medium text-gray-300">
-                Registro de Eventos en Tiempo Real (Log)
-              </span>
-            </div>
-            <div className="p-3 space-y-1.5 font-mono text-[11px] leading-relaxed">
-              {events.map((e, i) => (
-                <div key={i} className="flex gap-2">
-                  <span className="text-gray-500 shrink-0">[{e.time}]</span>
-                  <span className="text-gray-300">—</span>
-                  <span className="text-gray-300">{e.msg} </span>
-                  <span
-                    className={
-                      e.state === "Ocupado"
-                        ? "text-red-400 font-semibold"
-                        : "text-lime-400 font-semibold"
-                    }
-                  >
-                    ({e.state})
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* ─── right column 40% ─── */}
@@ -312,25 +259,17 @@ export default function MapaCajones() {
               {/* traffic chart */}
               <div className="border-t border-gray-100 pt-3 mt-1 shrink-0">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-medium text-gray-500">Flujo semanal de vehículos</span>
+                  <span className="text-[10px] font-medium text-gray-500">Flujo diario</span>
                   <span className="text-sm font-bold text-forest">{totalEntries}</span>
                 </div>
-                <div className="flex items-end gap-2 h-32">
-                  {dailyEntries.map((v, i) => {
-                    const max = Math.max(...dailyEntries, 1)
-                    const h = (v / max) * 100
-                    const labels = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
-                    const today = new Date().getDay()
-                    return (
-                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
-                        <div
-                          className="w-full rounded-sm transition-all duration-500"
-                          style={{ height: `${Math.max(h, 6)}%`, background: i === today ? '#06b6d4' : '#cbd5e1' }}
-                        />
-                        <span className="text-[8px] font-medium text-gray-400">{labels[i]}</span>
-                      </div>
-                    )
-                  })}
+                <div className="flex items-center gap-3 h-32">
+                  <div className="flex-1 h-full flex flex-col justify-end">
+                    <div className="w-full rounded-sm transition-all duration-500 bg-cyan-accent" style={{ height: `${totalEntries > 0 ? Math.min(totalEntries * 10, 100) : 6}%` }} />
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5 shrink-0">
+                    <span className="text-2xl font-bold text-forest">{totalEntries}</span>
+                    <span className="text-[8px] text-gray-400">hoy</span>
+                  </div>
                 </div>
               </div>
             </div>

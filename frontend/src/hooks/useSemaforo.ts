@@ -22,7 +22,7 @@ export const useSemaforo = () => {
 
   const getIds = (overrideSemaforo?: number) => {
     const s = overrideSemaforo ?? semaforo;
-    if (s === 0) return [0];
+    if (s === 0) return [1, 2, 3, 4];
     if (s === 1 || s === 2) return [1, 2];
     return [3, 4];
   };

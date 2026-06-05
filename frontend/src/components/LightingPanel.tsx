@@ -19,6 +19,7 @@ const MC: Record<string, string> = {
 
 export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnAllOn, onTurnAllOff }: Props) {
   const [draftIntensity, setDraftIntensity] = useState(zone?.intensity ?? 0);
+  const [dirty, setDirty] = useState(false);
   const { zona, setZona, mode, setMode, payload, setPayload, confirmar } = useLuces();
   const lastLoadedZoneId = useRef<number | null>(null);
 
@@ -28,6 +29,7 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
       setMode(zone.mode === 'apagado' ? 'apagar' : zone.mode === 'eco' ? 'eco' : 'manual');
       setPayload({ intensidad: zone.intensity });
       setDraftIntensity(zone.intensity);
+      setDirty(false);
       lastLoadedZoneId.current = zone.id;
     }
   }, [zone, setZona, setMode, setPayload]);
@@ -47,12 +49,14 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
     onSetMode(zone.id, m);
     setZona(zone.id === 1 ? 'este' : 'oeste');
     setMode(m === 'apagado' ? 'apagar' : m === 'eco' ? 'eco' : 'manual');
+    setDirty(true);
   };
 
   const handleSetIntensity = (val: number) => {
     onSetIntensity(zone.id, val);
     setZona(zone.id === 1 ? 'este' : 'oeste');
     setPayload({ intensidad: val });
+    setDirty(true);
   };
 
   const handleTurnAllOn = () => {
@@ -63,6 +67,7 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
     setPayload(newPayload);
     setDraftIntensity(100);
     confirmar({ zona: 'ambas', mode: 'manual', payload: newPayload });
+    setDirty(false);
   };
 
   const handleTurnAllOff = () => {
@@ -73,6 +78,7 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
     setPayload(newPayload);
     setDraftIntensity(0);
     confirmar({ zona: 'ambas', mode: 'apagar', payload: newPayload });
+    setDirty(false);
   };
 
   const lampsOn = zone.lamps.filter((l) => l.isOn).length;
@@ -165,13 +171,17 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
       </div>
       <hr className="border-gray-100" />
       <button
-        onClick={() => confirmar()}
-        className="w-full bg-forest text-white py-3 rounded-lg font-bold hover:bg-forest/90 transition-colors shadow-lg shadow-forest/20 flex items-center justify-center gap-2"
+        onClick={() => { confirmar(); setDirty(false); }}
+        disabled={!dirty}
+        className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-200
+          ${dirty
+            ? 'bg-forest text-white hover:bg-forest/90 shadow-lg shadow-forest/20 cursor-pointer'
+            : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
       >
         <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
         </svg>
-        Confirmar Configuración
+        Aplicar Cambios
       </button>
     </div>
   );
