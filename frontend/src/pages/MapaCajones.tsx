@@ -39,17 +39,19 @@ function ParkingBay({
 }) {
   return (
     <div
-      className={`flex flex-col items-stretch rounded-xl border-2 transition-all duration-300 overflow-hidden ${occupied ? "border-red-400 bg-red-50" : "border-lime-400 bg-lime-50"}`}
+      className={`flex flex-col items-stretch rounded-xl border-2 transition-all duration-200 overflow-hidden cursor-default select-none
+        hover:shadow-md active:scale-[0.97]
+        ${occupied ? "border-red-400 bg-red-50 hover:shadow-red-200/50" : "border-lime-400 bg-lime-50 hover:shadow-lime-200/50"}`}
     >
       <div className="flex items-center justify-center py-8">
         <span
-          className={`text-3xl font-black ${occupied ? "text-red-500" : "text-lime-600"}`}
+          className={`text-3xl font-black transition-colors duration-200 ${occupied ? "text-red-500" : "text-lime-600"}`}
         >
           {num}
         </span>
       </div>
       <div
-        className={`text-center text-[9px] font-semibold py-1 ${occupied ? "bg-red-100 text-red-700" : "bg-lime-100 text-lime-700"}`}
+        className={`text-center text-[9px] font-semibold py-1 transition-colors duration-200 ${occupied ? "bg-red-100 text-red-700" : "bg-lime-100 text-lime-700"}`}
       >
         {occupied ? (
           <Elapsed parkedAt={parkedAt} />
@@ -167,9 +169,18 @@ export default function MapaCajones() {
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                 LIVE
               </span>
+              <button
+                onClick={() => document.getElementById('camera-container')?.requestFullscreen()}
+                className="text-gray-400 hover:text-white transition-colors"
+                title="Pantalla completa"
+              >
+                <svg viewBox="0 0 20 20" className="w-4 h-4" fill="currentColor">
+                  <path d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm14 0a1 1 0 00-1-1h-4a1 1 0 000 2h1.586l-2.293 2.293a1 1 0 001.414 1.414L15 6.414V8a1 1 0 002 0V4zm0 12a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 012 0v4zM3 16a1 1 0 001 1h4a1 1 0 010-2H6.414l2.293-2.293a1 1 0 00-1.414-1.414L5 13.586V12a1 1 0 00-2 0v4z" />
+                </svg>
+              </button>
             </div>
 
-            <div className="flex-1 relative bg-gradient-to-b from-gray-800 to-gray-900 min-h-0 overflow-hidden">
+            <div id="camera-container" className="flex-1 relative bg-gradient-to-b from-gray-800 to-gray-900 min-h-0 overflow-hidden">
               <img
                 src={`http://${window.location.hostname}:3000/camera/en_vivo.jpg?t=${ts}`}
                 className="absolute inset-0 w-full h-full object-contain"
@@ -190,7 +201,7 @@ export default function MapaCajones() {
             <div className="flex items-center gap-6">
               <DonutChart pct={pct} />
               <div className="flex gap-3">
-                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-lime-300 bg-lime-50">
+                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-lime-300 bg-lime-50 transition-all duration-200 hover:shadow-md hover:shadow-lime-200/50 hover:scale-[1.02]">
                   <span className="w-3 h-3 rounded-full bg-lime-500" />
                   <div>
                     <span className="text-[10px] text-lime-700 font-medium">
@@ -201,7 +212,7 @@ export default function MapaCajones() {
                     </div>
                   </div>
                 </div>
-                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-red-300 bg-red-50">
+                <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-red-300 bg-red-50 transition-all duration-200 hover:shadow-md hover:shadow-red-200/50 hover:scale-[1.02]">
                   <span className="w-3 h-3 rounded-full bg-red-500" />
                   <div>
                     <span className="text-[10px] text-red-700 font-medium">
@@ -211,7 +222,7 @@ export default function MapaCajones() {
                       {occupied}
                     </div>
                   </div>
-            </div>
+                </div>
             <div className="mt-3 flex items-center gap-1.5 text-[10px] text-gray-400">
               <svg viewBox="0 0 12 12" className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 1v5l3 3" />
@@ -271,7 +282,7 @@ export default function MapaCajones() {
                     <span className="text-[8px] text-gray-400">hoy</span>
                   </div>
                 </div>
-              </div>
+                </div>
             </div>
           </div>
         </div>

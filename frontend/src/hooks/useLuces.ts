@@ -17,6 +17,7 @@ export const useLuces = () => {
     mode?: LucesMode;
     payload?: LucesPayload;
   }) => {
+    const backendUrl = `http://${window.location.hostname}:3000`;
     try {
       const targetZona = override?.zona || zona;
       const targetMode = override?.mode || mode;
@@ -36,7 +37,7 @@ export const useLuces = () => {
       console.log("Enviando comando de luces:", body);
 
       const response = await fetch(
-        "http://192.168.137.44:3000/commands/sendLuces",
+        `${backendUrl}/commands/sendLuces`,
         {
           method: "POST",
           headers: {

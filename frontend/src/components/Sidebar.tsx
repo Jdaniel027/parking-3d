@@ -58,13 +58,14 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         const isActive = activeView === id
         return (
           <button key={id} onClick={() => onNavigate(id)}
-            className={`relative flex items-center justify-center transition-colors duration-200 group w-full py-2
+            className={`relative flex items-center justify-center transition-all duration-150 group w-full py-2
+              active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-accent/40
               ${isActive ? 'text-cyan-accent' : 'text-forest hover:text-cyan-accent'}`}
             title={id === 'mapa' ? 'Mapa de Cajones' : id === 'semaforos' ? 'Control de Semáforos' : 'Zonas de Iluminación'}>
             {isActive && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-cyan-accent rounded-r" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-cyan-accent rounded-r animate-pulse" />
             )}
-            <span className="group-hover:scale-110 transition-transform">
+            <span className="group-hover:scale-110 group-active:scale-95 transition-transform">
               <Icon />
             </span>
           </button>

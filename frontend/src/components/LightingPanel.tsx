@@ -82,7 +82,6 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
   };
 
   const lampsOn = zone.lamps.filter((l) => l.isOn).length;
-  const isDirty = draftIntensity !== zone.intensity;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col gap-5 h-full overflow-y-auto">
@@ -110,11 +109,11 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
         <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">Acciones Rápidas</span>
         <div className="flex gap-2">
           <button onClick={handleTurnAllOn}
-            className="flex-1 py-2 rounded-lg text-sm font-medium border border-lime-soft/40 bg-lime-soft/15 text-forest hover:bg-lime-soft/25 transition-all duration-200">
+            className="flex-1 py-2 rounded-lg text-sm font-medium border border-lime-soft/40 bg-lime-soft/15 text-forest hover:bg-lime-soft/25 active:bg-lime-soft/35 active:scale-[0.96] transition-all duration-150 select-none focus-visible:ring-2 focus-visible:ring-lime-soft/50 focus-visible:outline-none">
             Encender todas
           </button>
           <button onClick={handleTurnAllOff}
-            className="flex-1 py-2 rounded-lg text-sm font-medium border border-coral-soft/40 bg-coral-soft/10 text-forest hover:bg-coral-soft/20 transition-all duration-200">
+            className="flex-1 py-2 rounded-lg text-sm font-medium border border-coral-soft/40 bg-coral-soft/10 text-forest hover:bg-coral-soft/20 active:bg-coral-soft/30 active:scale-[0.96] transition-all duration-150 select-none focus-visible:ring-2 focus-visible:ring-coral-soft/50 focus-visible:outline-none">
             Apagar todas
           </button>
         </div>
@@ -125,7 +124,7 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
         <div className="flex rounded-lg overflow-hidden text-sm font-medium border border-gray-200">
           {(["eco", "manual", "apagado"] as const).map((m) => (
             <button key={m} onClick={() => handleSetMode(m)}
-              className={`flex-1 py-2 border-r last:border-r-0 transition-all duration-200 ${zone.mode === m ? MC[m] : "text-gray-400 hover:text-forest"}`}>
+              className={`flex-1 py-2 border-r last:border-r-0 transition-all duration-150 select-none active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-accent/40 focus-visible:outline-none ${zone.mode === m ? MC[m] : "text-gray-400 hover:text-forest hover:bg-gray-50 active:bg-gray-100"}`}>
               {ML[m]}
             </button>
           ))}
@@ -143,15 +142,6 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
               [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-lime-soft
               [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(132,196,22,0.5)]" />
         </div>
-        {isDirty && (
-          <button onClick={() => handleSetIntensity(draftIntensity)}
-            className="w-full py-2 rounded-lg text-sm font-medium bg-lime-soft text-white hover:bg-lime-soft/90 transition-all duration-200 flex items-center justify-center gap-2">
-            <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 10l4 4 8-8" />
-            </svg>
-            Confirmar {draftIntensity}%
-          </button>
-        )}
       </div>
       <hr className="border-gray-100" />
       <div className="flex flex-col gap-2">
@@ -171,11 +161,11 @@ export default function LightingPanel({ zone, onSetMode, onSetIntensity, onTurnA
       </div>
       <hr className="border-gray-100" />
       <button
-        onClick={() => { confirmar(); setDirty(false); }}
+        onClick={() => { confirmar({ payload: { intensidad: draftIntensity } }); setDirty(false); }}
         disabled={!dirty}
-        className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-200
+        className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-150 select-none
           ${dirty
-            ? 'bg-forest text-white hover:bg-forest/90 shadow-lg shadow-forest/20 cursor-pointer'
+            ? 'bg-forest text-white hover:bg-forest/90 active:bg-forest/80 active:scale-[0.98] shadow-lg shadow-forest/20 hover:shadow-xl hover:shadow-forest/30 cursor-pointer focus-visible:ring-2 focus-visible:ring-forest/60 focus-visible:outline-none'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
       >
         <svg viewBox="0 0 20 20" className="w-5 h-5" fill="currentColor">
